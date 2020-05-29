@@ -50,7 +50,7 @@ header h1 {
 
 .side h1 {
     text-align: center;
-    border-bottom: 2px solid #555;
+    /*border-bottom: 2px solid #555;*/
 }
 
 .global {
