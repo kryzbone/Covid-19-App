@@ -1,95 +1,76 @@
 // Selector
-const countryDisplay = document.querySelector('.country-name');
+const [
+    countryDisplay, 
+    searchBox, 
+    input, 
+    localCases, 
+    localRecovered, 
+    localActive, 
+    localDeath
+] = [
+    '.country-name',
+    '.search-box',
+    '#search',
+    '.local-cases',
+    '.local-recovered',
+    '.active',
+    '.local-deaths'
+]
+.map(selector => document.querySelector(selector))
 const ctx = document.getElementById('chart-div').getContext('2d');
-const searchBox = document.querySelector('.search-box');
-const input = document.querySelector('#search');
-const localCases = document.querySelector('.local-cases');
-const localRecovered = document.querySelector('.local-recovered');
-const localActive = document.querySelector('.active');
-const localDeath = document.querySelector('.local-deaths');
 
-let countryCode = geoplugin_countryCode();
-let countryName;
-let chart;
-let arr = [];
+let [countryCode, chart, arr] = [geoplugin_countryCode(),,[]];
 
-countryLists.forEach(country => {
-    if(country.code == countryCode) {
-        countryName = country.name;
+for (let {name, code} of countryList) {
+    if (code == countryCode) {
+        fetchData(name); // load location-based data to page
+        break
     }
+}
+
+// convert string to title case
+String.prototype.toTitle = function () {
+    return this.charAt(0).toUpperCase() + this.slice(1)
+}
+
+
+Array('submit', 'change').forEach(ev => {
+    searchBox.addEventListener(ev, (e) => {
+        e.preventDefault();
+        
+        countryDisplay.innerText = 'Loading...';
+        localCases.innerText =
+        localRecovered.innerText =
+        localActive.innerText =
+        localDeath.innerText =  0 ;
+
+        chart.destroy();
+        fetchData(input.value.toTitle());
+    })
 })
 
 
-//Load datto to page
-fetchData(countryName);
+// FUNCTIONS
 
-
-
-searchBox.addEventListener('submit', (e) => {
-    e.preventDefault();
-    countryName = input.value.capitalize();
-
-    countryDisplay.innerHTML ='Loading...';
-    localCases.innerHTML =  0 ;
-    localRecovered.innerHTML =  0;
-    localActive.innerHTML = 0;
-    localDeath.innerHTML =  0 ;
-
-    arr = [];
-    chart.destroy();
-    fetchData(countryName);
-   
-})
-
-searchBox.addEventListener('change', (e) => {
-    e.preventDefault();
-   
-    countryName = input.value.capitalize();
-
-    countryDisplay.innerHTML ='Loading...';
-    localCases.innerHTML =  0 ;
-    localRecovered.innerHTML =  0;
-    localActive.innerHTML = 0;
-    localDeath.innerHTML =  0 ;
-
-    
-    arr = [];
-    chart.destroy();
-    fetchData(countryName);
-   
-})
-
-
-
-
-//FUNCTIONS
-
-//Function for Fetching Data With Country Name
-function fetchData(countryName) {
-    fetch('https://coronavirus-19-api.herokuapp.com/countries/'+countryName)
+// Fetch Data With Country Name
+function fetchData(country) {
+    fetch('https://coronavirus-19-api.herokuapp.com/countries/' + country)
     .then(res => res.json())
     .then(data => {
         countryDisplay.innerHTML = data.country;
-    
-        localCases.innerHTML = formatNumber(data.cases) || 0 ;
-        localRecovered.innerHTML = formatNumber(data.recovered) || 0;
-        localActive.innerHTML = formatNumber(data.active) || 0;
-        localDeath.innerHTML = formatNumber(data.deaths) || 0 ;
 
-        arr[0] = data.cases || 0;
-        arr[1] = data.recovered || 0;
-        arr[2] = data.active || 0;
-        arr[3] = data.deaths || 0;
+        Array(localCases, localRecovered, localActive, localDeath)
+        .map((elem, i) => {
+            const key = elem.className.split('-').pop()
+            elem.innerText = formatNumber(data[key]) || 0
+            arr[i] = data[key] || 0
+        })
 
         drawChart()
         input.value = '';
     })
-    .catch(err => {
-        console.log(err.message)
-    })
-
+    .catch(({message}) => console.log)
 }
-
 
 // drawing pie chart
 function drawChart() {
@@ -100,18 +81,9 @@ function drawChart() {
                 label: 'Total',
                 data: arr,
                 fill: false,
-                backgroundColor: ['grey','green', 'blue', 'red'],
-                
+                backgroundColor: ['grey', 'green', 'blue', 'red'],
             }],
-    
             labels: ['Cases', 'Recovered', 'Active', 'Dead']
-        },
-        options: {
-            
-        }
-        
-    });
+        }        
+    })
 }
-
-
-

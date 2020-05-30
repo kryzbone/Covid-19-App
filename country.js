@@ -1,4 +1,4 @@
-const countryLists = [ 
+const countryList = [ 
     {"name": "Afghanistan", "code": "AF"}, 
     {"name": "land Islands", "code": "AX"}, 
     {"name": "Albania", "code": "AL"}, 
@@ -243,51 +243,33 @@ const countryLists = [
     {"name": "Yemen", "code": "YE"}, 
     {"name": "Zambia", "code": "ZM"}, 
     {"name": "Zimbabwe", "code": "ZW"} 
-    ]
+]
 
 const dataList = document.getElementById('countries')
    
+// populate datalist
+/* using the 'insertAdjacentHTML' method allows us to 
+create and directly append an element without first instantiating it. */
+countryList.forEach(({name}) => dataList.insertAdjacentHTML(
+    'beforeend', 
+    `<option value="${name}"></option>`
+))
 
-countryLists.forEach(country => {
-    let option = document.createElement('option')
-    option.setAttribute('value', country.name);
-
-    dataList.appendChild(option);
-})
-
-
-//Selectors
-const totalCases = document.querySelector('.global-cases');
-const totalRecovery = document.querySelector('.global-recovered');
-const totalDeaths = document.querySelector('.global-deaths');
-
-
-//format Numbers
+// format number
 function formatNumber(num) {
-   if(num == null) return;
-   return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
- }
+    return !num ? null :
+    num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+    // or you could use the builtin number formatter
+    // Intl.NumberFormat().format(num)
+};
 
- //Capitalize 
- String.prototype.capitalize = function() {
-   return this.charAt(0).toUpperCase() + this.slice(1)
- }
- 
-
-
-//Fetch World wide Covid Data
-function getData() {
-   fetch('https://coronavirus-19-api.herokuapp.com/all')
-   .then(res => res.json())
-   .then(data => {
-      //display the data
-      totalCases.innerHTML = formatNumber(data.cases) ;
-      totalRecovery.innerHTML = formatNumber(data.recovered) ;
-      totalDeaths.innerHTML = formatNumber(data.deaths) ;
-   })
-   .catch(err => {
-      alert('Please Reload ' + err.message);
-   })
-}
-
-getData()
+// Fetch Worldwide Covid Data
+(function getData() {
+    // display the data
+    fetch('https://coronavirus-19-api.herokuapp.com/all')
+    .then(res => res.json())
+    .then(data => Array('cases', 'recovered', 'deaths').forEach(val => {
+        document.querySelector(`.global-${val}`).innerText = formatNumber(data[val])
+    }))
+    .catch(({message}) => alert('Please Reload ' + message))
+})()
